@@ -1,18 +1,34 @@
-// 1. İhtiyacımız olan araçları (paketleri) çağırıyoruz
+// 1. Import required packages
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config(); // .env dosyasındaki şifreleri okuması için
+require('dotenv').config(); // Load environment variables from .env file
 const { GoogleGenAI } = require('@google/genai');
+const rateLimit = require('express-rate-limit'); // 1. Güvenlik kapıcımızı (rate limiter) dahil ettik
 
-// 2. Sunucumuzu oluşturuyoruz
+// 2. Initialize the Express server
 const app = express();
-app.use(cors()); // Herkesin (özellikle Flutter'ın) bağlanmasına izin ver
-app.use(express.json()); // Gelen verileri JSON (yazı) formatında okuyabilmek için
+app.use(cors()); // Enable CORS to allow requests from the Flutter client
+app.use(express.json()); // Parse incoming JSON requests
 
-// 3. Gemini Yapay Zeka ayarlarını yapıyoruz
+// --- GÜVENLİK (RATE LIMITING) AYARI ---
+// Bu ayar, aynı IP adresinden peş peşe yapılan saldırıları veya gereksiz istekleri engeller.
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 dakika (Zaman penceresi)
+    max: 10, // Her IP için 15 dakika içinde maksimum 10 istek hakkı
+    message: { error: "Mimir'i çok fazla yordun. Biraz dinlen, sular durulunca tekrar gel (15 dakika bekle)." },
+    standardHeaders: true, // Rate limit bilgisini header'lara ekler (kalan hakkını görmek için)
+    legacyHeaders: false, // Eski tip header'ları kapatır
+});
+
+// Kapıcıyı sadece '/ask-mimir' rotasına (yoluna) ekliyoruz
+app.use('/ask-mimir', limiter);
+// -------------------------------------
+
+// 3. Configure Google Gemini AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// 4. Mimir'in Karakteri (Sistem Komutu - Prompt Engineering kısmı)
+// 4. Mimir's Persona (System Prompt)
+// Note: Prompt remains in Turkish to ensure the AI responds in Turkish.
 const MIMIR_PROMPT = `
 Sen İskandinav Mitolojisi'ndeki bilgelik tanrısı Mimir'sin.
 Kullanıcı sana günlük dertlerini, problemlerini veya duygularını yazacak.
@@ -23,45 +39,43 @@ Cevapların çok uzun olmasın, vurucu ve kısa (maksimum 3-4 cümle) olsun.
 Sana "nasılsın" gibi sıradan şeyler sorulursa, kendi mitolojik hikayenden (kesik başının Odin'e fısıldaması vb.) kısa kesitler vererek bilgeliğe davet et.
 `;
 
-// 5. Ziyaretçileri (Flutter'dan gelecek mesajları) karşılayacağımız kapı (Route)
+// 5. API Route to handle incoming messages from Flutter
 app.post('/ask-mimir', async (req, res) => {
     try {
-        // Flutter'dan gelen kullanıcının mesajını (derdini) alıyoruz
+        // Extract the user's message from the request body
         const userMessage = req.body.message;
 
         if (!userMessage) {
             return res.status(400).json({ error: "Kuyunun suyuna bir dert fısıldamalısın (mesaj boş olamaz)." });
         }
 
-        console.log("Kuyuya fısıldanan dert:", userMessage);
+        console.log("Whisper received:", userMessage);
 
-        // Gemini AI'a mesajı ve karakterimizi (Mimir) gönderiyoruz
+        // Send the prompt and user message to Gemini AI using the correct System Instruction format
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: [
-                // Önce Mimir'in kim olduğunu sisteme söylüyoruz
-                { role: 'user', parts: [{ text: MIMIR_PROMPT }] },
-                { role: 'model', parts: [{ text: "Anladım, ben bilge Mimir'im. Sularıma fısıldanan dertleri bekliyorum." }] },
-                // Sonra kullanıcının gerçek mesajını iletiyoruz
-                { role: 'user', parts: [{ text: userMessage }] }
-            ]
+            contents: userMessage, // Just send the user's message here
+            config: {
+                systemInstruction: MIMIR_PROMPT, // Mimir's persona goes here!
+                temperature: 0.7 // Control creativity (0.0 to 2.0)
+            }
         });
 
-        // Gelen cevabı yakalıyoruz
+        // Extract the response text
         const mimirAnswer = response.text;
-        console.log("Mimir'in cevabı:", mimirAnswer);
+        console.log("Mimir's answer:", mimirAnswer);
 
-        // Cevabı Flutter'a (kullanıcıya) geri gönderiyoruz
+        // Send the AI's answer back to the Flutter app
         res.json({ answer: mimirAnswer });
 
     } catch (error) {
-        console.error("Yapay Zeka ile iletişimde hata:", error);
+        console.error("Error communicating with AI:", error);
         res.status(500).json({ error: "Mimir'in kuyusu şu an bulanık, daha sonra tekrar fısılda." });
     }
 });
 
-// 6. Sunucuyu uyandırıp dinlemeye başlatıyoruz
+// 6. Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Mimir'in Kuyusu açıldı. Port: ${PORT} üzerinden fısıltıları dinliyor...`);
+    console.log(`Mimir's Well is open. Listening for whispers on port: ${PORT}...`);
 });
