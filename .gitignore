@@ -1,2 +1,13 @@
-node_modules/
-.env
+# Backend API Ignore Kuralları
+backend-api/node_modules/
+backend-api/.env
+
+# Mobile App (Flutter) Ignore Kuralları
+mobile-app/.dart_tool/
+mobile-app/build/
+mobile-app/.flutter-plugins
+mobile-app/.flutter-plugins-dependencies
+
+# İşletim Sistemi Çöpleri
+.DS_Store
+Thumbs.db
