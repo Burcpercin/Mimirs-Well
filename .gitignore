@@ -3,10 +3,10 @@ backend-api/node_modules/
 backend-api/.env
 
 # Mobile App (Flutter) Ignore Kuralları
-mobile-app/.dart_tool/
-mobile-app/build/
-mobile-app/.flutter-plugins
-mobile-app/.flutter-plugins-dependencies
+flutter_app/.dart_tool/
+flutter_app/build/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
 
 # İşletim Sistemi Çöpleri
 .DS_Store
