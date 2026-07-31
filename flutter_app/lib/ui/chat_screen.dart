@@ -43,80 +43,124 @@ class ChatScreen extends StatelessWidget {
   Widget _buildMessageBubble(Map<String, String> message, BuildContext context) {
     bool isUser = message['role'] == 'user';
     
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-        padding: const EdgeInsets.all(16.0),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-        decoration: BoxDecoration(
-          color: isUser ? AppTheme.userBubble : AppTheme.skaldBubble,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(4),
-            bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(16),
-          ),
-          border: Border.all(
-            color: isUser ? Colors.transparent : AppTheme.primaryGold.withOpacity(0.3),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 5, offset: const Offset(0, 3))
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isUser) ...[
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: AppTheme.primaryGold,
+              child: Icon(Icons.auto_awesome, color: AppTheme.background, size: 18),
+            ),
+            const SizedBox(width: 8),
           ],
-        ),
-        child: Text(
-          message['text']!,
-          style: TextStyle(
-            color: isUser ? AppTheme.textPrimary : AppTheme.textSecondary,
-            fontSize: 16,
-            height: 1.4,
-            fontStyle: isUser ? FontStyle.normal : FontStyle.italic,
+          
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              decoration: BoxDecoration(
+                color: isUser ? AppTheme.userBubble : AppTheme.skaldBubble,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(24),
+                  topRight: const Radius.circular(24),
+                  bottomLeft: isUser ? const Radius.circular(24) : const Radius.circular(4),
+                  bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(24),
+                ),
+                border: isUser 
+                    ? null 
+                    : Border.all(color: AppTheme.primaryGold.withOpacity(0.6), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: isUser ? AppTheme.userBubble.withOpacity(0.3) : AppTheme.primaryGold.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Text(
+                message['text']!,
+                style: TextStyle(
+                  color: isUser ? AppTheme.textPrimary : AppTheme.primaryGold,
+                  fontSize: 16,
+                  height: 1.5,
+                  letterSpacing: 0.3,
+                  fontStyle: isUser ? FontStyle.normal : FontStyle.italic,
+                  fontWeight: isUser ? FontWeight.w400 : FontWeight.w500,
+                ),
+              ),
+            ),
           ),
-        ),
+          
+          if (isUser) ...[
+            const SizedBox(width: 8),
+            const CircleAvatar(
+              radius: 16,
+              backgroundColor: AppTheme.userBubble,
+              child: Icon(Icons.person, color: Colors.white70, size: 18),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   Widget _buildInputArea(ChatController controller) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 24.0),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 8, offset: const Offset(0, -2))
-        ],
+        color: AppTheme.background,
+        border: const Border(top: BorderSide(color: AppTheme.skaldBubble, width: 2)),
       ),
       child: SafeArea(
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: controller.textController,
-                style: const TextStyle(color: AppTheme.textPrimary),
-                decoration: InputDecoration(
-                  hintText: "Düşüncelerini rünlere dök...",
-                  hintStyle: TextStyle(color: AppTheme.textPrimary.withOpacity(0.5)),
-                  filled: true,
-                  fillColor: AppTheme.skaldBubble,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24.0),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surface,
+                  borderRadius: BorderRadius.circular(30.0),
+                  border: Border.all(color: AppTheme.skaldBubble, width: 1.5),
                 ),
-                onSubmitted: (_) => controller.sendMessage(),
+                child: TextField(
+                  controller: controller.textController,
+                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16),
+                  maxLines: 4,
+                  minLines: 1,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => controller.sendMessage(),
+                  decoration: InputDecoration(
+                    hintText: "Düşüncelerini rünlere dök...",
+                    hintStyle: TextStyle(color: AppTheme.textSecondary.withOpacity(0.4), fontStyle: FontStyle.italic),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryGold,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.send, color: AppTheme.background),
-                onPressed: () => controller.sendMessage(),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () => controller.sendMessage(),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryGold, Color(0xFFB8860B)], // Altından koyu altına geçiş
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryGold.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: const Icon(Icons.send_rounded, color: AppTheme.background, size: 24),
               ),
             ),
           ],
