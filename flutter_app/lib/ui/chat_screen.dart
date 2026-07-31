@@ -50,10 +50,11 @@ class ChatScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
-            const CircleAvatar(
+            CircleAvatar(
               radius: 16,
-              backgroundColor: AppTheme.primaryGold,
-              child: Icon(Icons.auto_awesome, color: AppTheme.background, size: 18),
+              backgroundColor: AppTheme.primaryGold.withOpacity(0.1), // Ağacın arkasında hafif altın bir hare
+              // İkon yerine direkt kendi koyduğumuz Dünya Ağacı görselini çekiyoruz
+              backgroundImage: const AssetImage('assets/images/yggdrasil.png'),
             ),
             const SizedBox(width: 8),
           ],
