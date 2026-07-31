@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config(); // Load environment variables from .env file
 const { GoogleGenAI } = require('@google/genai');
-const rateLimit = require('express-rate-limit'); // 1. Güvenlik kapıcımızı (rate limiter) dahil ettik
+const rateLimit = require('express-rate-limit'); // Security: Rate limiter
 
 // 2. Initialize the Express server
 const app = express();
@@ -22,13 +22,12 @@ const limiter = rateLimit({
 
 // Kapıcıyı sadece '/ask-mimir' rotasına (yoluna) ekliyoruz
 app.use('/ask-mimir', limiter);
-// -------------------------------------
 
 // 3. Configure Google Gemini AI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // 4. Mimir's Persona (System Prompt)
-// Note: Prompt remains in Turkish to ensure the AI responds in Turkish.
+
 const MIMIR_PROMPT = `
 Sen İskandinav Mitolojisi'ndeki bilgelik tanrısı Mimir'sin.
 Kullanıcı sana günlük dertlerini, problemlerini veya duygularını yazacak.
@@ -74,8 +73,8 @@ app.post('/ask-mimir', async (req, res) => {
     }
 });
 
-// 6. Start the server
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Mimir's Well is open. Listening for whispers on port: ${PORT}...`);
+    console.log(`Mimir's Well API is open. Listening for whispers on port: ${PORT}...`);
 });

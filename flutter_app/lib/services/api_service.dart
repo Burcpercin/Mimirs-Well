@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-
-  static const String _baseUrl = 'http://localhost:3000'; 
+  // Emulator için 10.0.2.2 kullanıyoruz (localhost yerine)
+  static const String _baseUrl = 'http://10.0.2.2:3000'; 
 
   Future<String> askMimir(String message) async {
     try {
