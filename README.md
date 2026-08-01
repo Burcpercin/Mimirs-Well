@@ -246,7 +246,3 @@ flutter run
 ## Geliştirici
 
 Burcpercin
-
-```
-
-```
